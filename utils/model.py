@@ -1,14 +1,9 @@
-import asyncio
 import itertools as it
 import json
 import os
-from datetime import datetime
 from functools import lru_cache
-from pathlib import Path
-from typing import List
 
 import torch
-from docx import Document
 from loguru import logger
 from nlgeval import NLGEval
 from torch.distributions import Categorical
@@ -19,76 +14,9 @@ from transformers import (
     RobertaTokenizer,
 )
 
-from config import hl_token, max_length
-from model import Answer, QAExportItem
-
-
-def prepare_qg_model_input_ids(article, start_at, end_at, tokenizer):
-    hl_context = f"{article[:start_at]}{hl_token}{article[start_at:end_at]}{hl_token}{article[end_at:]}"
-    logger.info(hl_context)
-    model_input = tokenizer(hl_context, return_length=True)
-
-    input_length = model_input["length"][0]
-    if input_length > max_length:
-        hl_token_id = tokenizer.convert_tokens_to_ids([hl_token])[0]
-        slice_length = int(max_length / 2)
-        mid_index = model_input["input_ids"].index(hl_token_id)
-        new_input_ids = model_input["input_ids"][
-            mid_index - slice_length : mid_index + slice_length
-        ]
-        model_input["input_ids"] = new_input_ids
-    return torch.LongTensor([model_input["input_ids"]]), input_length
-
-
-def prepare_dis_model_input_ids(
-    article, question, answer, ans_start, ans_end, tokenizer
-):
-    sep_token_id = tokenizer.sep_token_id
-    article_max_length = max_length - 52  # 後面會手動插入2個sep_token
-    article_max_length -= 20  # 預留20個token空間
-    article_input = tokenizer(
-        tokenizer.cls_token + article, add_special_tokens=False, return_length=True
-    )
-    # logger.debug(article_input)
-    article_length = article_input["length"]
-    if type(article_length) is list:
-        article_length = article_length[0]
-
-    # 當文章過長，依據答案位置重新裁切文章
-    if article_length > article_max_length:
-        slice_length = int(article_max_length / 2)
-        mid_index = int((ans_start + ans_end) / 2)
-        new_input_ids = article_input["input_ids"][
-            mid_index - slice_length : mid_index + slice_length
-        ]
-        article_input["input_ids"] = new_input_ids
-
-    question_input = tokenizer(
-        question,
-        max_length=30,
-        return_length=True,
-        add_special_tokens=False,
-        truncation=True,
-    )
-
-    answer_input = tokenizer(
-        answer,
-        max_length=20,
-        return_length=True,
-        add_special_tokens=False,
-        truncation=True,
-    )
-
-    final_input_ids = (
-        article_input["input_ids"]
-        + [sep_token_id]
-        + question_input["input_ids"]
-        + [sep_token_id]
-        + answer_input["input_ids"]
-    )
-    total_legnth = len(final_input_ids)
-    assert total_legnth <= max_length
-    return torch.LongTensor([final_input_ids]), total_legnth
+from ..config import max_length
+from ..model import Answer
+from .tokenizing import prepare_dis_model_input_ids
 
 
 class BartDistractorGeneration:
@@ -217,62 +145,3 @@ class BartDistractorGeneration:
                 if entropy >= max_combin[0]:
                     max_combin = [entropy, options]
         return max_combin[1][:-1]
-
-
-def _export_json(qa_pairs):
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = Path(f"{now}.json")
-    with open(filename, "w") as f:
-        json.dump([qa_pair.dict() for qa_pair in qa_pairs], f)
-    return filename
-
-
-def _export_txt(qa_pairs):
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = Path(f"{now}.txt")
-    with open(filename, "w") as f:
-        for qa_pair in qa_pairs:
-            f.write(f"{qa_pair.context}\n\n")
-            f.write(f"{qa_pair.question}\n\n")
-            for option in qa_pair.options:
-                if option.is_answer:
-                    f.write(f"* {option.option}\n")
-                else:
-                    f.write(f"- {option.option}\n")
-            f.write("\n")
-    return filename
-
-
-def _export_docx(qa_pairs: List[QAExportItem]):
-    now = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = Path(f"{now}.docx")
-
-    document = Document()
-    for qa_pair in qa_pairs:
-        document.add_paragraph(f"{qa_pair.context}\n")
-        document.add_paragraph(f"{qa_pair.question}\n")
-        for option in qa_pair.options:
-            if option.is_answer:
-                document.add_paragraph(f"+ {option.option}")
-            else:
-                document.add_paragraph(f"- {option.option}")
-
-    document.save(filename)
-
-    return filename
-
-
-def export_file(qa_pairs: List[QAExportItem], format: str):
-    if format == "json":
-        return _export_json(qa_pairs)
-    elif format == "txt":
-        return _export_txt(qa_pairs)
-    elif format == "docx":
-        return _export_docx(qa_pairs)
-    else:
-        raise ValueError(f"Unsupported format: {format}")
-
-
-async def delete_later(file_path, wait=120):
-    await asyncio.sleep(wait)
-    os.remove(file_path)
