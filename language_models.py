@@ -52,7 +52,7 @@ class BartDistractorGeneration:
         ]
 
         for dg_model in self.dg_models:
-            dg_model.to(os.environ["BDG_DEVICE"])
+            dg_model.to(os.environ.get("BDG_DEVICE", "cpu"))
 
         #
         self.tokenizer = RobertaTokenizer.from_pretrained(
