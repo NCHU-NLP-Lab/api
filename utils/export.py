@@ -6,8 +6,7 @@ from pathlib import Path
 from typing import List
 
 from docx import Document
-
-from ..model import QAExportItem
+from model import QAExportItem
 
 
 def _export_json(qa_pairs):

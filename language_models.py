@@ -8,15 +8,17 @@ from loguru import logger
 from nlgeval import NLGEval
 from torch.distributions import Categorical
 from transformers import (
+    AutoModelForCausalLM,
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
+    BertTokenizerFast,
     RobertaForMultipleChoice,
     RobertaTokenizer,
 )
 
-from ..config import max_length
-from ..model import Answer
-from .tokenizing import prepare_dis_model_input_ids
+QUESTION_GENERATION_ENG_MODEL = "p208p2002/bart-squad-qg-hl"
+QUESTION_GENERATION_CHT_MODEL = "p208p2002/gpt2-drcd-qg-hl"
+DISTRACTOR_GENERATION_ENG_MODEL = "voidful/bart-distractor-generation"
 
 
 class BartDistractorGeneration:
@@ -34,19 +36,19 @@ class BartDistractorGeneration:
 
         #
         self.dg_models = [
-            AutoModelForSeq2SeqLM.from_pretrained("voidful/bart-distractor-generation"),
+            AutoModelForSeq2SeqLM.from_pretrained(DISTRACTOR_GENERATION_ENG_MODEL),
             AutoModelForSeq2SeqLM.from_pretrained(
-                "voidful/bart-distractor-generation-pm"
+                f"{DISTRACTOR_GENERATION_ENG_MODEL}-pm"
             ),
             AutoModelForSeq2SeqLM.from_pretrained(
-                "voidful/bart-distractor-generation-both"
+                f"{DISTRACTOR_GENERATION_ENG_MODEL}-both"
             ),
         ]
 
         self.dg_tokenizers = [
-            AutoTokenizer.from_pretrained("voidful/bart-distractor-generation"),
-            AutoTokenizer.from_pretrained("voidful/bart-distractor-generation-pm"),
-            AutoTokenizer.from_pretrained("voidful/bart-distractor-generation-both"),
+            AutoTokenizer.from_pretrained(DISTRACTOR_GENERATION_ENG_MODEL),
+            AutoTokenizer.from_pretrained(f"{DISTRACTOR_GENERATION_ENG_MODEL}-pm"),
+            AutoTokenizer.from_pretrained(f"{DISTRACTOR_GENERATION_ENG_MODEL}-both"),
         ]
 
         for dg_model in self.dg_models:
@@ -64,7 +66,11 @@ class BartDistractorGeneration:
 
     @lru_cache(maxsize=1000)
     def generate_distractor(self, context, question, answer, gen_quantity):
+        from utils.tokenizing import prepare_dis_model_input_ids
+
         if type(answer) is str:
+            from model import Answer
+
             answer = Answer.parse_obj(json.loads(answer))
 
         all_options = []
@@ -117,6 +123,8 @@ class BartDistractorGeneration:
                     keep = False
                     break
             if keep:
+                from config import max_length
+
                 prompt = context + self.tokenizer.sep_token + question
                 encoding_input = []
                 for choice in options:
@@ -145,3 +153,30 @@ class BartDistractorGeneration:
                 if entropy >= max_combin[0]:
                     max_combin = [entropy, options]
         return max_combin[1][:-1]
+
+
+class LanguageModels:
+    def __init__(self):
+        logger.info("start loading en models...")
+        self.en_qg_model = AutoModelForSeq2SeqLM.from_pretrained(
+            QUESTION_GENERATION_ENG_MODEL
+        )
+        self.en_qg_tokenizer = AutoTokenizer.from_pretrained(
+            QUESTION_GENERATION_ENG_MODEL
+        )
+        self.en_dis_model = BartDistractorGeneration()
+        logger.info("loading en models finished !")
+
+        logger.info("start loading zh models...")
+        self.zh_qg_model = AutoModelForCausalLM.from_pretrained(
+            QUESTION_GENERATION_CHT_MODEL
+        )
+        self.zh_qg_tokenizer = BertTokenizerFast.from_pretrained(
+            QUESTION_GENERATION_CHT_MODEL
+        )
+        logger.info("loading zh models finished !")
+
+
+if __name__ == "__main__":
+    logger.info("Pre-Downloading Language Models")
+    models = LanguageModels()

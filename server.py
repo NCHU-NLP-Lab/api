@@ -5,15 +5,9 @@ from typing import List
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
-from loguru import logger
-from transformers import (
-    AutoModelForCausalLM,
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
-    BertTokenizerFast,
-)
 
 from config import max_length, max_question_length
+from language_models import LanguageModels
 from model import (
     Distractors,
     EnDisItem,
@@ -23,28 +17,10 @@ from model import (
     ZhDisItem,
     ZhQGItem,
 )
-from utils import (
-    BartDistractorGeneration,
-    delete_later,
-    export_file,
-    prepare_qg_model_input_ids,
-)
+from utils import delete_later, export_file, prepare_qg_model_input_ids
 
-# init nlp_model
-logger.info("start loading en models...")
-en_qg_path = "p208p2002/bart-squad-qg-hl"
-en_dis_path = "voidful/bart-distractor-generation"
-
-en_qg_model = AutoModelForSeq2SeqLM.from_pretrained(en_qg_path)
-en_qg_tokenizer = AutoTokenizer.from_pretrained(en_qg_path)
-en_dis_model = BartDistractorGeneration()
-logger.info("loading en models finished !")
-
-logger.info("start loading zh models...")
-zh_qg_path = "p208p2002/gpt2-drcd-qg-hl"
-zh_qg_model = AutoModelForCausalLM.from_pretrained(zh_qg_path)
-zh_qg_tokenizer = BertTokenizerFast.from_pretrained(zh_qg_path)
-logger.info("loading zh models finished !")
+# Initialize Language Models
+models = LanguageModels()
 
 app = FastAPI(title="NCHU NLP API", description="All-in-one NLP task", version="0.1.0")
 
@@ -86,9 +62,9 @@ async def generate_en_question(item: EnQGItem):
     end_at = item.answer.end_at + 1
 
     input_ids, input_length = prepare_qg_model_input_ids(
-        article, start_at, end_at, en_qg_tokenizer
+        article, start_at, end_at, models.en_qg_tokenizer
     )
-    outputs = en_qg_model.generate(
+    outputs = models.en_qg_model.generate(
         input_ids=input_ids,
         max_length=max_question_length,
         early_stopping=True,
@@ -102,7 +78,9 @@ async def generate_en_question(item: EnQGItem):
 
     decode_questions = []
     for output in outputs:
-        decode_question = en_qg_tokenizer.decode(output, skip_special_tokens=True)
+        decode_question = models.en_qg_tokenizer.decode(
+            output, skip_special_tokens=True
+        )
         decode_questions.append(decode_question)
     return QuestionAndAnswer(
         tag=item.answer.tag,
@@ -118,7 +96,7 @@ async def generate_en_distractor(item: EnDisItem):
     answer = item.answer
     question = item.question
     gen_quantity = item.gen_quantity
-    decodes = en_dis_model.generate_distractor(
+    decodes = models.en_dis_model.generate_distractor(
         article, question, json.dumps(answer.dict()), gen_quantity
     )
     return Distractors(distractors=decodes)
@@ -131,9 +109,9 @@ async def generate_zh_question(item: ZhQGItem):
     end_at = item.answer.end_at + 1
 
     input_ids, input_length = prepare_qg_model_input_ids(
-        article, start_at, end_at, zh_qg_tokenizer
+        article, start_at, end_at, models.zh_qg_tokenizer
     )
-    outputs = zh_qg_model.generate(
+    outputs = models.zh_qg_model.generate(
         input_ids=input_ids,
         max_length=max_length + max_question_length,
         early_stopping=True,
@@ -143,12 +121,12 @@ async def generate_zh_question(item: ZhQGItem):
         diversity_penalty=-10,
         no_repeat_ngram_size=2,
         num_return_sequences=5,
-        eos_token_id=zh_qg_tokenizer.eos_token_id,
+        eos_token_id=models.zh_qg_tokenizer.eos_token_id,
     )
 
     decode_questions = []
     for output in outputs:
-        decode_question = zh_qg_tokenizer.decode(
+        decode_question = models.zh_qg_tokenizer.decode(
             output[input_length:], skip_special_tokens=True
         )
         decode_question = decode_question.replace(" ", "")
