@@ -12,7 +12,7 @@ from model import (
     Distractors,
     EnDisItem,
     EnQGItem,
-    QAExportItem,
+    ExportSet,
     QuestionAndAnswer,
     ZhDisItem,
     ZhQGItem,
@@ -44,7 +44,7 @@ async def root():
 
 @app.post("/export-qa-pairs/{format}")
 async def export_qa_pairs(
-    qa_pairs: List[QAExportItem], format: str, background_tasks: BackgroundTasks
+    qa_pairs: List[ExportSet], format: str, background_tasks: BackgroundTasks
 ):
     file_path = export_file(qa_pairs, format)
     background_tasks.add_task(delete_later, file_path)
