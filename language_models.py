@@ -7,14 +7,9 @@ import torch
 from loguru import logger
 from nlgeval import NLGEval
 from torch.distributions import Categorical
-from transformers import (
-    AutoModelForCausalLM,
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
-    BertTokenizerFast,
-    RobertaForMultipleChoice,
-    RobertaTokenizer,
-)
+from transformers import (AutoModelForCausalLM, AutoModelForSeq2SeqLM,
+                          AutoTokenizer, BertTokenizerFast,
+                          RobertaForMultipleChoice, RobertaTokenizer)
 
 QUESTION_GENERATION_ENG_MODEL = "p208p2002/bart-squad-qg-hl"
 QUESTION_GENERATION_CHT_MODEL = "p208p2002/gpt2-drcd-qg-hl"
@@ -62,7 +57,7 @@ class BartDistractorGeneration:
             "LIAMF-USP/roberta-large-finetuned-race"
         )
         self.model.eval()
-        self.model.to(os.environ["BDG_CLF_DEVICE"])
+        self.model.to(os.environ.get("BDG_CLF_DEVICE", "cpu"))
 
     @lru_cache(maxsize=1000)
     def generate_distractor(self, context, question, answer, gen_quantity):
