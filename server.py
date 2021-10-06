@@ -25,7 +25,8 @@ models = LanguageModels()
 app = FastAPI(title="NCHU NLP API", description="All-in-one NLP task", version="0.1.0")
 
 origins = os.getenv(
-    "allow_origins", "http://localhost:8000 http://localhost:3000"
+    "allow_origins",
+    "https://app.queratorai.com https://app2.queratorai.com http://localhost:8000 http://localhost:3000",
 ).split()
 
 app.add_middleware(
