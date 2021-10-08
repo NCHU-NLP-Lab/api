@@ -5,6 +5,7 @@ from typing import List
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
+from loguru import logger
 
 from config import max_length, max_question_length
 from language_models import LanguageModels
@@ -13,11 +14,18 @@ from model import (
     EnDisItem,
     EnQGItem,
     ExportSet,
+    GenerationOrder,
     QuestionAndAnswer,
     ZhDisItem,
     ZhQGItem,
 )
-from utils import delete_later, export_file, prepare_qg_model_input_ids
+from utils import (
+    GAOptimizer,
+    delete_later,
+    export_file,
+    feedback_generation,
+    prepare_qg_model_input_ids,
+)
 
 # Initialize Language Models
 models = LanguageModels()
@@ -143,3 +151,58 @@ async def generate_zh_question(item: ZhQGItem):
 @app.post("/zh/generate-distractor")
 async def generate_zh_distractor(item: ZhDisItem):
     pass
+
+
+@app.post("/zh/generate-question-group")
+async def generate(order: GenerationOrder):
+    # return {'question_group':[
+    #             'Harry Potter is a series of seven fantasy novels written by   _ .',
+    #             'Who is Voldemort?',
+    #             'How does the story begin?'
+    #         ]}
+
+    context = order.context
+    question_group_size = order.question_group_size
+    candidate_pool_size = order.candidate_pool_size
+
+    #
+    if candidate_pool_size < question_group_size:
+        return {
+            "message": "`candidate_pool_size` must bigger than `question_group_size`"
+        }, 400
+    if candidate_pool_size > 20:
+        return {"message": "`candidate_pool_size` must smaller than 20"}, 400
+    if question_group_size > 10:
+        return {"message": "`question_group_size` must smaller than 10"}, 400
+
+    tokenize_result = models.en_qgg_tokenizer.batch_encode_plus(
+        [context],
+        stride=max_length - int(max_length * 0.7),
+        max_length=max_length,
+        truncation=True,
+        add_special_tokens=False,
+        return_overflowing_tokens=True,
+        return_length=True,
+    )
+    candidate_questions = []
+    logger.info(f"Size of tokenize_result.input_ids:{len(tokenize_result.input_ids)}")
+
+    if len(tokenize_result.input_ids) >= 10:
+        logger.warning(
+            f"Force cut tokenize_result.input_ids({len(tokenize_result.input_ids)}) to 10, it's too big"
+        )
+        tokenize_result.input_ids = tokenize_result.input_ids[:10]
+
+    for input_ids in tokenize_result.input_ids:
+        candidate_questions += feedback_generation(
+            model=models.en_qgg_model,
+            tokenizer=models.en_qgg_tokenizer,
+            input_ids=input_ids,
+            feedback_times=order.candidate_pool_size,
+        )
+    logger.info(f"Size of candidate_questions:{len(candidate_questions)}")
+
+    while len(candidate_questions) > question_group_size:
+        qgg_optim = GAOptimizer(len(candidate_questions), question_group_size)
+        candidate_questions = qgg_optim.optimize(candidate_questions, context)
+    return {"question_group": candidate_questions}

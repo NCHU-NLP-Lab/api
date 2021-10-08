@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -70,6 +70,12 @@ class ZhDisItem(DisItem):
                 "gen_quantity": 3,
             }
         }
+
+
+class GenerationOrder(BaseModel):
+    context: str
+    question_group_size: Optional[int] = 5
+    candidate_pool_size: Optional[int] = 10
 
 
 class Distractors(BaseModel):
