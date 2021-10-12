@@ -13,9 +13,9 @@ class GAOptimizer:
             candicate_pool_size: how many question in the candicate pool, refs to encoding size
             target_question_qroup_size: the questions number we execpt to pick
         """
-        if target_question_qroup_size <= candicate_pool_size:
+        if candicate_pool_size < target_question_qroup_size:
             raise ValueError(
-                "target_question_qroup_size must be greater than candicate_pool_size"
+                "candicate_pool_size must be smaller than target_question_qroup_size"
             )
         self.target_question_qroup_size = target_question_qroup_size
         self.condicate_questions = None
@@ -97,7 +97,7 @@ class GAOptimizer:
         )
 
         # punishment if count_pick not equal to question_group_size
-        count_pick = (genome is True).sum()
+        count_pick = (genome == 1).sum()
         punish_weight = 1 - (
             abs(self.target_question_qroup_size - count_pick) / self.candicate_pool_size
         )
@@ -134,9 +134,9 @@ class RandomOptimizer:
             candicate_pool_size: how many question in the candicate pool, refs to encoding size
             target_question_qroup_size: the questions number we execpt to pick
         """
-        if target_question_qroup_size <= candicate_pool_size:
+        if candicate_pool_size < target_question_qroup_size:
             raise ValueError(
-                "target_question_qroup_size must be greater than candicate_pool_size"
+                "candicate_pool_size must be smaller than target_question_qroup_size"
             )
         self.target_question_qroup_size = target_question_qroup_size
 
@@ -153,9 +153,9 @@ class FirstNOptimizer:
             candicate_pool_size: how many question in the candicate pool, refs to encoding size
             target_question_qroup_size: the questions number we execpt to pick
         """
-        if target_question_qroup_size <= candicate_pool_size:
+        if candicate_pool_size < target_question_qroup_size:
             raise ValueError(
-                "target_question_qroup_size must be greater than candicate_pool_size"
+                "candicate_pool_size must be smaller than target_question_qroup_size"
             )
         self.target_question_qroup_size = target_question_qroup_size
 
@@ -170,9 +170,9 @@ class GreedyOptimizer:
             candicate_pool_size: how many question in the candicate pool, refs to encoding size
             target_question_qroup_size: the questions number we execpt to pick
         """
-        if target_question_qroup_size <= candicate_pool_size:
+        if candicate_pool_size < target_question_qroup_size:
             raise ValueError(
-                "target_question_qroup_size must be greater than candicate_pool_size"
+                "candicate_pool_size must be smaller than target_question_qroup_size"
             )
         self.target_question_qroup_size = target_question_qroup_size
         self.condicate_questions = None

@@ -1,6 +1,7 @@
 import threading
 import time
 
+import stanza
 import torch
 from loguru import logger
 from transformers import (
@@ -26,6 +27,7 @@ class LanguageModels:
             threading.Thread(target=self.init_cht_qg_model),
             threading.Thread(target=self.init_eng_qgg_model),
             threading.Thread(target=self.init_eng_dg_model),
+            threading.Thread(target=stanza.download, args=("en",)),
         ]
 
         start_at = time.time()

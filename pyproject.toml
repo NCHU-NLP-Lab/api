@@ -17,6 +17,7 @@ nlg-eval = {git = "https://github.com/Maluuba/nlg-eval.git"}
 python-docx = "^0.8.11"
 geneticalgorithm = "^1.0.2"
 stanza = "^1.3.0"
+matplotlib = "^3.4.3"
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"
