@@ -1,3 +1,3 @@
-from .rl_nlgeval import BartDistractorGenerationRL
+from .rl_nlgeval import BartDistractorGeneration
 
-__all__ = ["BartDistractorGenerationRL"]
+__all__ = ["BartDistractorGeneration"]

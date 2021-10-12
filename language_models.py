@@ -13,7 +13,7 @@ from transformers import (
     BertTokenizerFast,
 )
 
-from distractor_generation import BartDistractorGenerationRL
+from distractor_generation import BartDistractorGeneration
 
 QUESTION_GENERATION_ENG_MODEL = "p208p2002/bart-squad-qg-hl"
 QUESTION_GENERATION_CHT_MODEL = "p208p2002/gpt2-drcd-qg-hl"
@@ -35,8 +35,9 @@ class LanguageModels:
         for thread in threads:
             thread.start()
 
-        for thread in threads:
-            thread.join()
+        # for thread in threads:
+        #     thread.join()
+        threads[3].join()
 
         logger.info(f"Model loading took {(time.time() - start_at):.2f} secs")
 
@@ -75,7 +76,7 @@ class LanguageModels:
 
     def init_eng_dg_model(self):
         logger.info("Start loading Enlish DG Model...")
-        self.en_dis_model = BartDistractorGenerationRL()
+        self.en_dis_model = BartDistractorGeneration()
         logger.info("English DG Model loaded!")
 
 

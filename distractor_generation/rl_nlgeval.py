@@ -13,11 +13,12 @@ from transformers import (
     RobertaForMultipleChoice,
     RobertaTokenizer,
 )
+from utils import GAOptimizer
 
 DISTRACTOR_GENERATION_ENG_MODEL = "voidful/bart-distractor-generation"
 
 
-class BartDistractorGenerationRL:
+class BartDistractorGeneration:
     def __init__(self):
         self.nlgeval = NLGEval(
             metrics_to_omit=[
@@ -61,8 +62,14 @@ class BartDistractorGenerationRL:
         self.model.to(os.environ.get("BDG_CLF_DEVICE", "cpu"))
 
     @lru_cache(maxsize=1000)
-    def generate_distractor(self, context, question, answer, gen_quantity):
+    def generate_distractor(self, context, question, answer, gen_quantity, strategy):
         from utils.tokenizing import prepare_dis_model_input_ids
+
+        strategy = strategy.upper()
+        if strategy not in ["RL", "GA"]:
+            raise ValueError(
+                f"Strategy {strategy} is not supported. Please choose from RL or GA."
+            )
 
         if type(answer) is str:
             from model import Answer
@@ -94,9 +101,17 @@ class BartDistractorGenerationRL:
                 logger.info(f"{i} {option}")
                 all_options.append(option)
         # logger.info(all_options)
-        return self._selection(context, question, answer.tag, all_options, gen_quantity)
 
-    def _selection(self, context, question, answer, all_options, gen_quantity):
+        if strategy == "RL":
+            return self._selection_with_rl(
+                context, question, answer.tag, all_options, gen_quantity
+            )
+        elif strategy == "GA":
+            return self._selection_with_ga(
+                context, question, answer.tag, all_options, gen_quantity
+            )
+
+    def _selection_with_rl(self, context, question, answer, all_options, gen_quantity):
         max_combin = [0, []]
         for combin in set(it.combinations(all_options, gen_quantity)):
             options = list(combin) + [answer]
@@ -149,3 +164,7 @@ class BartDistractorGenerationRL:
                 if entropy >= max_combin[0]:
                     max_combin = [entropy, options]
         return max_combin[1][:-1]
+
+    def _selection_with_ga(self, context, question, answer, all_options, gen_quantity):
+        ga_optim = GAOptimizer(len(all_options), gen_quantity)
+        return ga_optim.optimize(all_options, context)[:gen_quantity]
