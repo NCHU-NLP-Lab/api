@@ -7,19 +7,13 @@ import torch
 from loguru import logger
 from nlgeval import NLGEval
 from torch.distributions import Categorical
-from transformers import (
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
-    RobertaForMultipleChoice,
-    RobertaTokenizer,
-)
 from utils import GAOptimizer
-
-DISTRACTOR_GENERATION_ENG_MODEL = "voidful/bart-distractor-generation"
 
 
 class BartDistractorGeneration:
-    def __init__(self):
+    def __init__(
+        self, dg_models, dg_tokenizer, dg_selection_models, dg_selection_tokenizer
+    ):
         self.nlgeval = NLGEval(
             metrics_to_omit=[
                 "METEOR",
@@ -31,35 +25,17 @@ class BartDistractorGeneration:
             ]
         )
 
-        #
-        self.dg_models = [
-            AutoModelForSeq2SeqLM.from_pretrained(DISTRACTOR_GENERATION_ENG_MODEL),
-            AutoModelForSeq2SeqLM.from_pretrained(
-                f"{DISTRACTOR_GENERATION_ENG_MODEL}-pm"
-            ),
-            AutoModelForSeq2SeqLM.from_pretrained(
-                f"{DISTRACTOR_GENERATION_ENG_MODEL}-both"
-            ),
-        ]
+        self.dg_models = dg_models
 
-        self.dg_tokenizers = [
-            AutoTokenizer.from_pretrained(DISTRACTOR_GENERATION_ENG_MODEL),
-            AutoTokenizer.from_pretrained(f"{DISTRACTOR_GENERATION_ENG_MODEL}-pm"),
-            AutoTokenizer.from_pretrained(f"{DISTRACTOR_GENERATION_ENG_MODEL}-both"),
-        ]
+        self.dg_tokenizers = dg_tokenizer
 
         for dg_model in self.dg_models:
             dg_model.to(os.environ.get("BDG_DEVICE", "cpu"))
 
-        #
-        self.tokenizer = RobertaTokenizer.from_pretrained(
-            "LIAMF-USP/roberta-large-finetuned-race"
-        )
-        self.model = RobertaForMultipleChoice.from_pretrained(
-            "LIAMF-USP/roberta-large-finetuned-race"
-        )
+        self.model = dg_selection_models
         self.model.eval()
         self.model.to(os.environ.get("BDG_CLF_DEVICE", "cpu"))
+        self.tokenizer = dg_selection_tokenizer
 
     @lru_cache(maxsize=1000)
     def generate_distractor(self, context, question, answer, gen_quantity, strategy):

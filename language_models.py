@@ -11,17 +11,23 @@ from transformers import (
     BartForConditionalGeneration,
     BartTokenizerFast,
     BertTokenizerFast,
+    RobertaForMultipleChoice,
+    RobertaTokenizer,
 )
-
-from distractor_generation import BartDistractorGeneration
 
 QUESTION_GENERATION_ENG_MODEL = "p208p2002/bart-squad-qg-hl"
 QUESTION_GENERATION_CHT_MODEL = "p208p2002/gpt2-drcd-qg-hl"
 QUESTION_GROUP_GENERATION_MODEL = "p208p2002/qmst-qgg"
+DISTRACTOR_GENERATION_ENG_MODEL = "voidful/bart-distractor-generation"
+DISTRACTOR_GENERATION_SELECTION_RL_MODEL = "LIAMF-USP/roberta-large-finetuned-race"
 
 
 class LanguageModels:
-    def __init__(self):
+    def __init__(self, download_only=False):
+        self.download_only = download_only
+        if download_only:
+            logger.info("Pre-Downloading Language Models")
+
         threads = [
             threading.Thread(target=self.init_eng_qg_model),
             threading.Thread(target=self.init_cht_qg_model),
@@ -35,9 +41,8 @@ class LanguageModels:
         for thread in threads:
             thread.start()
 
-        # for thread in threads:
-        #     thread.join()
-        threads[3].join()
+        for thread in threads:
+            thread.join()
 
         logger.info(f"Model loading took {(time.time() - start_at):.2f} secs")
 
@@ -76,10 +81,35 @@ class LanguageModels:
 
     def init_eng_dg_model(self):
         logger.info("Start loading Enlish DG Model...")
-        self.en_dis_model = BartDistractorGeneration()
+        dg_models = [
+            AutoModelForSeq2SeqLM.from_pretrained(DISTRACTOR_GENERATION_ENG_MODEL),
+            AutoModelForSeq2SeqLM.from_pretrained(
+                f"{DISTRACTOR_GENERATION_ENG_MODEL}-pm"
+            ),
+            AutoModelForSeq2SeqLM.from_pretrained(
+                f"{DISTRACTOR_GENERATION_ENG_MODEL}-both"
+            ),
+        ]
+        dg_tokenizers = [
+            AutoTokenizer.from_pretrained(DISTRACTOR_GENERATION_ENG_MODEL),
+            AutoTokenizer.from_pretrained(f"{DISTRACTOR_GENERATION_ENG_MODEL}-pm"),
+            AutoTokenizer.from_pretrained(f"{DISTRACTOR_GENERATION_ENG_MODEL}-both"),
+        ]
+        rl_model = RobertaForMultipleChoice.from_pretrained(
+            DISTRACTOR_GENERATION_SELECTION_RL_MODEL
+        )
+        rl_tokenizer = RobertaTokenizer.from_pretrained(
+            DISTRACTOR_GENERATION_SELECTION_RL_MODEL
+        )
+
+        if not self.download_only:
+            from distractor_generation import BartDistractorGeneration
+
+            self.en_dis_model = BartDistractorGeneration(
+                dg_models, dg_tokenizers, rl_model, rl_tokenizer
+            )
         logger.info("English DG Model loaded!")
 
 
 if __name__ == "__main__":
-    logger.info("Pre-Downloading Language Models")
-    models = LanguageModels()
+    models = LanguageModels(download_only=True)
