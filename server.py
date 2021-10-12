@@ -64,7 +64,7 @@ async def export_qa_pairs(
     )
 
 
-@app.post("/en/generate-question")
+@app.post("/en-US/generate-question")
 async def generate_en_question(item: EnQGItem):
     article = item.article
     start_at = item.answer.start_at
@@ -99,7 +99,7 @@ async def generate_en_question(item: EnQGItem):
     )
 
 
-@app.post("/en/generate-distractor/{selection_strategy}")
+@app.post("/en-US/generate-distractor/{selection_strategy}")
 async def generate_en_distractor(item: EnDisItem, strategy: Optional[str] = "RL"):
     article = item.article
     answer = item.answer
@@ -111,7 +111,7 @@ async def generate_en_distractor(item: EnDisItem, strategy: Optional[str] = "RL"
     return Distractors(distractors=decodes)
 
 
-@app.post("/zh/generate-question")
+@app.post("/zh-TW/generate-question")
 async def generate_zh_question(item: ZhQGItem):
     article = item.article
     start_at = item.answer.start_at
@@ -148,12 +148,12 @@ async def generate_zh_question(item: ZhQGItem):
     )
 
 
-@app.post("/zh/generate-distractor")
+@app.post("/zh-TW/generate-distractor")
 async def generate_zh_distractor(item: ZhDisItem):
     pass
 
 
-@app.post("/zh/generate-question-group")
+@app.post("/zh-TW/generate-question-group")
 async def generate(order: GenerationOrder):
     # return {'question_group':[
     #             'Harry Potter is a series of seven fantasy novels written by   _ .',
