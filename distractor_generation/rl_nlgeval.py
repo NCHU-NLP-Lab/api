@@ -41,12 +41,6 @@ class BartDistractorGeneration:
     def generate_distractor(self, context, question, answer, gen_quantity, strategy):
         from utils.tokenizing import prepare_dis_model_input_ids
 
-        strategy = strategy.upper()
-        if strategy not in ["RL", "GA"]:
-            raise ValueError(
-                f"Strategy {strategy} is not supported. Please choose from RL or GA."
-            )
-
         if type(answer) is str:
             from model import Answer
 

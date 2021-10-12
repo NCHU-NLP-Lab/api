@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -70,6 +71,12 @@ class ZhDisItem(DisItem):
                 "gen_quantity": 3,
             }
         }
+
+
+class DistractorSelectionStrategry(str, Enum):
+    RL = "RL"
+    GA = "GA"
+
 
 
 class GenerationOrder(BaseModel):

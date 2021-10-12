@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List, Optional
+from typing import List
 
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,6 +11,7 @@ from config import max_length, max_question_length
 from language_models import LanguageModels
 from model import (
     Distractors,
+    DistractorSelectionStrategry,
     EnDisItem,
     EnQGItem,
     ExportSet,
@@ -99,8 +100,11 @@ async def generate_en_question(item: EnQGItem):
     )
 
 
-@app.post("/en-US/generate-distractor/{selection_strategy}")
-async def generate_en_distractor(item: EnDisItem, strategy: Optional[str] = "RL"):
+@app.post("/en-US/generate-distractor")
+async def generate_en_distractor(
+    item: EnDisItem,
+    strategy: DistractorSelectionStrategry = DistractorSelectionStrategry.RL,
+):
     article = item.article
     answer = item.answer
     question = item.question
