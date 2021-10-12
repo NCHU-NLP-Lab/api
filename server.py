@@ -10,6 +10,7 @@ from loguru import logger
 from config import max_length, max_question_length
 from language_models import LanguageModels
 from model import (
+    DistractorOrder,
     Distractors,
     DistractorSelectionStrategry,
     EnDisItem,
@@ -21,6 +22,7 @@ from model import (
     ZhQGItem,
 )
 from utils import (
+    CoverageScorer,
     GAOptimizer,
     delete_later,
     export_file,
@@ -105,14 +107,73 @@ async def generate_en_distractor(
     item: EnDisItem,
     strategy: DistractorSelectionStrategry = DistractorSelectionStrategry.RL,
 ):
-    article = item.article
-    answer = item.answer
-    question = item.question
-    gen_quantity = item.gen_quantity
-    decodes = models.en_dis_model.generate_distractor(
-        article, question, json.dumps(answer.dict()), gen_quantity, strategy
+    if strategy is DistractorSelectionStrategry.RL:
+        decodes = models.en_dis_model.generate_distractor(
+            item.article,
+            item.question,
+            json.dumps(item.answer.dict()),
+            item.gen_quantity,
+            strategy,
+        )
+        return Distractors(distractors=decodes)
+    elif strategy is DistractorSelectionStrategry.GA:
+        return Distractors()
+
+
+@app.post("/en-US/generate-group-distractor")
+async def generate_en_group_distractors(order: DistractorOrder):
+    MAX_CONTEXT_LENGTH = max_length - 52
+    tokenizer = models.en_dis_model.dg_tokenizers[0]
+    tokenize_result = tokenizer.batch_encode_plus(
+        [order.context],
+        stride=MAX_CONTEXT_LENGTH - int(MAX_CONTEXT_LENGTH * 0.7),
+        max_length=MAX_CONTEXT_LENGTH,
+        truncation=True,
+        add_special_tokens=False,
+        return_overflowing_tokens=True,
+        return_length=True,
     )
-    return Distractors(distractors=decodes)
+    # logger.debug(tokenize_result)
+
+    # 由於內文有長度限制；計算問句最匹配的內文段落
+    keyword_coverage_scorer = CoverageScorer()
+    cqas = []
+    for question_and_answer in order.question_and_answers:
+        question = question_and_answer.question
+        answer = question_and_answer.answer
+        score = 0.0
+        paragraph = tokenizer.decode(tokenize_result.input_ids[0])
+        for input_ids in tokenize_result.input_ids:
+            _paragraph = tokenizer.decode(input_ids)
+            _score = keyword_coverage_scorer._compute_coverage_score(
+                [question], _paragraph
+            )
+            # logger.debug(f"Q:{question} A:{answer} score:{score}")
+
+            if _score > score:
+                score = _score
+                paragraph = _paragraph
+
+        cqas.append({"context": paragraph, "question": question, "answer": answer})
+
+    outs = []
+    for cqa in cqas:
+        options = models.en_dis_model.generate_distractor_ga(
+            context=cqa["context"],
+            question=cqa["question"],
+            answer=cqa["answer"],
+            gen_quantity=3,
+        )
+        logger.info(f"Q:{cqa['question']} A:{cqa['answer']} O:{options}")
+        outs.append(
+            {
+                "_context": cqa["context"],
+                "options": options,
+                "question": cqa["question"],
+                "answer": cqa["answer"],
+            }
+        )
+    return {"distractors": outs}
 
 
 @app.post("/zh-TW/generate-question")
@@ -157,7 +218,7 @@ async def generate_zh_distractor(item: ZhDisItem):
     pass
 
 
-@app.post("/zh-TW/generate-question-group")
+@app.post("/en-US/generate-question-group")
 async def generate(order: GenerationOrder):
     # return {'question_group':[
     #             'Harry Potter is a series of seven fantasy novels written by   _ .',

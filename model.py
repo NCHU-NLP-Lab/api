@@ -78,7 +78,6 @@ class DistractorSelectionStrategry(str, Enum):
     GA = "GA"
 
 
-
 class GenerationOrder(BaseModel):
     context: str
     question_group_size: Optional[int] = 5
@@ -88,6 +87,42 @@ class GenerationOrder(BaseModel):
         schema_extra = {
             "example": {
                 "context": "Facebook is an American online social media and social networking service based in Menlo Park, California, and a flagship service of the namesake company Facebook, Inc. It was founded by Mark Zuckerberg, along with fellow Harvard College students and roommates Eduardo Saverin, Andrew McCollum, Dustin Moskovitz, and Chris Hughes. The founders of Facebook initially limited membership to Harvard students. Membership was expanded to Columbia, Stanford, and Yale before being expanded to the rest of the Ivy League, MIT, NYU, Boston University, then various other universities in the United States and Canada, and lastly high school students. Since 2006, anyone who claims to be at least 13 years old has been allowed to become a registered user of Facebook, though this may vary depending on local laws. The name comes from the face book directories often given to American university students."
+            }
+        }
+
+
+class DistractorGroupQuestionAndAnswer(BaseModel):
+    question: str
+    answer: str
+
+
+class DistractorOrder(BaseModel):
+    context: str
+    question_and_answers: List[DistractorGroupQuestionAndAnswer]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "context": "Harry Potter is a series of seven fantasy novels written by British author J. K. Rowling. The novels chronicle the lives of a young wizard, Harry Potter, and his friends Hermione Granger and Ron Weasley, all of whom are students at Hogwarts School of Witchcraft and Wizardry. The main story arc concerns Harry's struggle against Lord Voldemort, a dark wizard who intends to become immortal, overthrow the wizard governing body known as the Ministry of Magic and subjugate all wizards and Muggles.",
+                "question_and_answers": [
+                    {
+                        "question": "Harry Potter is the series of seven fantasy novels written by  _ .",
+                        "answer": "J.K. Rowling",
+                    },
+                    {"question": "What is Voldemort's plan?", "answer": "Eat cake"},
+                    {
+                        "question": "Which one of the stories does the author probably want to tell?",
+                        "answer": "struggle against Lord Voldemort",
+                    },
+                    {
+                        "question": "What is the biggest challenge Harry has facing?",
+                        "answer": "struggle against Lord Voldemort",
+                    },
+                    {
+                        "question": "The books in Rowling's series are about   _ .",
+                        "answer": "Harry",
+                    },
+                ],
             }
         }
 

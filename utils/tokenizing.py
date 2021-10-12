@@ -69,3 +69,22 @@ def prepare_dis_model_input_ids(
     total_legnth = len(final_input_ids)
     assert total_legnth <= max_length
     return torch.LongTensor([final_input_ids]), total_legnth
+
+
+def prepare_dis_model_ga_input_ids(article, question, answer, tokenizer):
+    context_input = tokenizer(
+        article, max_length=max_length - 52, add_special_tokens=True, truncation=True
+    )
+    question_input = tokenizer(
+        question, max_length=20, add_special_tokens=True, truncation=True
+    )
+    answer_input = tokenizer(
+        answer, max_length=16, add_special_tokens=True, truncation=True
+    )
+
+    input_ids = (
+        context_input["input_ids"]
+        + question_input["input_ids"][1:]
+        + answer_input["input_ids"][1:]
+    )
+    return torch.LongTensor([input_ids])

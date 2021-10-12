@@ -4,8 +4,9 @@ import torch
 from config import max_length
 
 from .optim import GAOptimizer
+from .scorer import CoverageScorer
 
-__all__ = ["feedback_generation", "GAOptimizer"]
+__all__ = ["feedback_generation", "GAOptimizer", "CoverageScorer"]
 
 
 def feedback_generation(model, tokenizer, input_ids, feedback_times=3):

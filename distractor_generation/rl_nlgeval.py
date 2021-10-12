@@ -135,6 +135,38 @@ class BartDistractorGeneration:
                     max_combin = [entropy, options]
         return max_combin[1][:-1]
 
+    @lru_cache(maxsize=1000)
+    def generate_distractor_ga(self, context, question, answer, gen_quantity):
+        from utils.tokenizing import prepare_dis_model_ga_input_ids
+
+        if answer == "":
+            logger.warning("answer is null")
+            return []
+        all_options = []
+        for i, (dg_tokenizer, dg_model) in enumerate(
+            zip(self.dg_tokenizers, self.dg_models)
+        ):
+            d_input_ids = prepare_dis_model_ga_input_ids(
+                context, question, answer, dg_tokenizer
+            )  # 如果文章過長進行重新裁切與處理
+            out_ids = dg_model.generate(
+                input_ids=d_input_ids.to(dg_model.device),
+                num_beams=gen_quantity * 3,
+                length_penalty=0.9,
+                num_beam_groups=gen_quantity,
+                diversity_penalty=1.0,
+                num_return_sequences=gen_quantity * 2,
+            )
+            for out_seq_ids in out_ids:
+                option = dg_tokenizer.decode(out_seq_ids, skip_special_tokens=True)
+                # logger.info(f"{i} {option}")
+                all_options.append(option)
+        # logger.info(all_options)
+        # return all_options
+        return self._selection_with_ga(
+            context, question, answer, all_options, gen_quantity
+        )
+
     def _selection_with_ga(self, context, question, answer, all_options, gen_quantity):
         ga_optim = GAOptimizer(len(all_options), gen_quantity)
         return ga_optim.optimize(all_options, context)[:gen_quantity]
