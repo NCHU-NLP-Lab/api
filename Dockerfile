@@ -15,16 +15,16 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     && rm -rf /var/lib/apt/lists
 
 # Setup python
-RUN curl https://bootstrap.pypa.io/get-pip.py | python3 && \
-    python3 -m pip install --upgrade pip setuptools wheel
+RUN curl https://bootstrap.pypa.io/get-pip.py | python3 \
+    && python3 -m pip install --upgrade pip setuptools wheel
 
 # Install modules
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # Pre download language models
-COPY language_models.py .
-RUN python3 language_models.py
+COPY download.py .
+RUN python3 download.py
 
 # Copy whole app
 COPY . .
