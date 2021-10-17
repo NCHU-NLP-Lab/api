@@ -12,6 +12,7 @@ from transformers import (
     BertTokenizerFast,
     RobertaForMultipleChoice,
     RobertaTokenizer,
+    AutoModelForPreTraining
 )
 
 from download import ModelSlugs
@@ -28,6 +29,7 @@ class LanguageModels:
             threading.Thread(target=self.init_cht_qg_model),
             threading.Thread(target=self.init_eng_qgg_model),
             threading.Thread(target=self.init_eng_dg_model),
+            threading.Thread(target=self.init_eng_fm_model)
         ]
 
         start_at = time.time()
@@ -39,6 +41,7 @@ class LanguageModels:
             thread.join()
 
         logger.info(f"Model loading took {(time.time() - start_at):.2f} secs")
+
 
     def init_eng_qg_model(self):
         logger.info("Start loading Enlish QG Model...")
@@ -111,6 +114,24 @@ class LanguageModels:
                 dg_models, dg_tokenizers, rl_model, rl_tokenizer
             )
         logger.info("English DG Model loaded!")
+
+
+    def init_eng_fm_model(self):
+        logger.info("Start loading Enlish Phishing Email Model...")
+        self.en_fm_model = AutoModelForPreTraining.from_pretrained(
+            ModelSlugs.PHISHING_EMAIL_GENERATION_ENG_MODEL.value
+        )
+        self.en_fm_tokenizer = AutoTokenizer.from_pretrained(
+            'gpt2'
+        )
+        self.en_fm_tokenizer.add_special_tokens(
+            {"bos_token": "<|BOS|>",
+            "eos_token": "<|EOS|>",
+            "unk_token": "<|UNK|>",
+            "pad_token": "<|PAD|>",
+            "sep_token": "<|SEP|>"}
+        )
+        logger.info("Enlish Phishing Email Model loaded!")
 
 
 if __name__ == "__main__":

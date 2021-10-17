@@ -16,6 +16,8 @@ class ModelSlugs(str, Enum):
     DISTRACTOR_GENERATION_ENG_MODEL_PM = f"{DISTRACTOR_GENERATION_ENG_MODEL}-pm"
     DISTRACTOR_GENERATION_ENG_MODEL_BOTH = f"{DISTRACTOR_GENERATION_ENG_MODEL}-both"
     DISTRACTOR_GENERATION_SELECTION_RL_MODEL = "LIAMF-USP/roberta-large-finetuned-race"
+    PHISHING_EMAIL_GENERATION_ENG_MODEL = "heliart/PhishingEmailGeneration"
+
 
 
 def download_model(model_name):
