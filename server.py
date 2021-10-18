@@ -11,19 +11,19 @@ from data_model import (
     Distractors,
     DistractorSelectionStrategry,
     EnDisItem,
+    EnFMGItem,
     EnQGItem,
     ExportSet,
     GenerationOrder,
     ZhDisItem,
     ZhQGItem,
-    EnFMGItem
 )
 from distractor_group_generation import generate as generate_dgg_en_us
 from language_model import LanguageModels
+from phishing_email_generation import generate as generate_fm_en_us
 from question_generation.en_us import generate as generate_qg_en_us
 from question_generation.zh_tw import generate as generate_qg_zh_tw
 from question_group_generation import generate as generate_qgg_en_us
-from phishing_email_generation import generate as generate_fm_en_us
 from utils import delete_later, export_file
 
 # Initialize Language Models
@@ -112,9 +112,9 @@ async def generate(order: GenerationOrder):
         model=models.en_qgg_model, tokenizer=models.en_qgg_tokenizer, order=order
     )
 
+
 @app.post("/en-US/generate-phishing-email")
 async def generate_en_phishing_email(item: EnFMGItem):
     return generate_fm_en_us(
         model=models.en_fm_model, tokenizer=models.en_fm_tokenizer, item=item
     )
-

@@ -19,7 +19,6 @@ class ModelSlugs(str, Enum):
     PHISHING_EMAIL_GENERATION_ENG_MODEL = "heliart/PhishingEmailGeneration"
 
 
-
 def download_model(model_name):
     logger.info(f"Loading: {model_name}")
     AutoModel.from_pretrained(model_name)

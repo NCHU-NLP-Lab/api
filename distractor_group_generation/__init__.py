@@ -1,8 +1,9 @@
+from loguru import logger
+from transformers import AutoModel
+
 from config import max_length
 from data_model import DistractorOrder
-from loguru import logger
 from question_group_generation.scorer import CoverageScorer
-from transformers import AutoModel
 
 
 def generate(model: AutoModel, order: DistractorOrder):

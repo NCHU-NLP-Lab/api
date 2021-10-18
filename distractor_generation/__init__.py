@@ -4,11 +4,12 @@ import os
 from functools import lru_cache
 
 import torch
-from config import max_length
 from loguru import logger
 from nlgeval import NLGEval
-from question_group_generation.optimizer import GAOptimizer
 from torch.distributions import Categorical
+
+from config import max_length
+from question_group_generation.optimizer import GAOptimizer
 
 
 def prepare_dis_model_ga_input_ids(article, question, answer, tokenizer):

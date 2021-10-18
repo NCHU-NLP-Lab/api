@@ -1,8 +1,9 @@
 from typing import Tuple
 
+from transformers import AutoModel, AutoTokenizer
+
 from config import max_length, max_question_length
 from data_model import QuestionAndAnswer, ZhQGItem
-from transformers import AutoModel, AutoTokenizer
 
 from .. import prepare_qg_model_input_ids
 

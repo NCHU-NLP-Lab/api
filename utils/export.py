@@ -5,8 +5,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 
-from data_model import ExportSet
 from docx import Document
+
+from data_model import ExportSet
 
 
 def _export_json(question_sets: List[ExportSet]):

@@ -1,6 +1,7 @@
 import torch
-from config import hl_token, max_length
 from loguru import logger
+
+from config import hl_token, max_length
 
 
 def prepare_qg_model_input_ids(article, start_at, end_at, tokenizer):
