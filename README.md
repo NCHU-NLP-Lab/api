@@ -21,6 +21,28 @@ All-in-one API service, serving multiple NLP tasks for system demo at NCHU NLP L
 
 - Context-Question-Answer pair exporting
 
+## Deployment
+
+Use this `docker-compose.yml` template with `docker-compose up --detach --build` command
+
+```yaml
+version: "3.8"
+
+services:
+  api:
+    build: "."
+    env_file: .env
+    container_name: "nchu-lab-api"
+    restart: always
+    ports:
+      - "PORT_OF_YOUR_CHOICE:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+```
+
 ## Development
 
 ### Setup
