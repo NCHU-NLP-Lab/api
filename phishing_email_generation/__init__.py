@@ -27,12 +27,14 @@ def _join_keywords(keywords, randomize=False):
 
 def generate(model: AutoModel, tokenizer: AutoTokenizer, item: EnFMGItem):
     kw = _join_keywords(item.keywords)
-    title = "Greeting"  # 文體起始句
-    # types = "Fraud" #犯罪的文章，包含詐騙郵件詞表
-    types = "Normal"
-    category = "TECH"  # 商務文章，包含正常郵件詞表
-    # category => 內文主題 'CRIME' ,'ENTERTAINMENT', 'POLITICS', 'SPORTS', 'BUSINESS', 'TECH', 'EDUCATION', 'HEALTHY LIVING', 'MONEY', 'CULTURE & ARTS'
-    formats = "Email"  # Email文體
+    title = item.title  # 起始句
+    types = item.types
+    if types not in ['Normal', 'Fraud']:
+        types = 'Normal'
+    category = item.category
+    if category not in ['CRIME' ,'ENTERTAINMENT', 'POLITICS', 'SPORTS', 'BUSINESS', 'TECH', 'EDUCATION', 'HEALTHY LIVING', 'MONEY', 'CULTURE & ARTS']:
+        category = 'TECH'
+    formats = "Email"  # 文體
 
     prompt = (
         SPECIAL_TOKENS["bos_token"]

@@ -172,3 +172,6 @@ class ExportSet(BaseModel):
 
 class EnFMGItem(BaseModel):
     keywords: List[str]
+    types: str
+    category: str
+    title: str
