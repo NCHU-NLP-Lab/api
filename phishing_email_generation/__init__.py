@@ -27,27 +27,9 @@ def _join_keywords(keywords, randomize=False):
 
 def generate(model: AutoModel, tokenizer: AutoTokenizer, item: EnFMGItem):
     kw = _join_keywords(item.keywords)
-    title = item.title  # 起始句
-    types = item.types
-    if types not in ['Normal', 'Fraud']:
-        types = 'Normal'
-    category = item.category
-    if category not in ['CRIME' ,'ENTERTAINMENT', 'POLITICS', 'SPORTS', 'BUSINESS', 'TECH', 'EDUCATION', 'HEALTHY LIVING', 'MONEY', 'CULTURE & ARTS']:
-        category = 'TECH'
-    formats = "Email"  # 文體
+    title = ""
 
-    prompt = (
-        SPECIAL_TOKENS["bos_token"]
-        + types
-        + SPECIAL_TOKENS["sep_token"]
-        + category
-        + SPECIAL_TOKENS["sep_token"]
-        + formats
-        + SPECIAL_TOKENS["sep_token"]
-        + title
-        + SPECIAL_TOKENS["sep_token"]
-        + kw
-    )
+    prompt = SPECIAL_TOKENS['bos_token'] + title + SPECIAL_TOKENS['sep_token'] + kw + SPECIAL_TOKENS['sep_token']
 
     generated = tokenizer.encode(prompt, return_tensors="pt")
 
@@ -66,13 +48,7 @@ def generate(model: AutoModel, tokenizer: AutoTokenizer, item: EnFMGItem):
     sentence = []
     for i, sample_output in enumerate(sample_outputs):
         text = tokenizer.decode(sample_output, skip_special_tokens=True)
-        a = (
-            len(types)
-            + len(category)
-            + len(formats)
-            + len(title)
-            + len(",".join(item.keywords))
-        )
+        a = len(title) + len(','.join(item.keywords)) 
         sentence.append(title + text[a:])
         # print('{} {}\n\n'.format(title,sentence[i]))
 
