@@ -2,7 +2,7 @@ import random
 
 from transformers import AutoModel, AutoTokenizer
 
-from data_model import EnFMGItem
+from data.model import FMGItem
 
 SPECIAL_TOKENS = {
     "bos_token": "<|BOS|>",
@@ -25,11 +25,17 @@ def _join_keywords(keywords, randomize=False):
     return ",".join(keywords)
 
 
-def generate(model: AutoModel, tokenizer: AutoTokenizer, item: EnFMGItem):
+def generate(model: AutoModel, tokenizer: AutoTokenizer, item: FMGItem):
     kw = _join_keywords(item.keywords)
     title = ""
 
-    prompt = SPECIAL_TOKENS['bos_token'] + title + SPECIAL_TOKENS['sep_token'] + kw + SPECIAL_TOKENS['sep_token']
+    prompt = (
+        SPECIAL_TOKENS["bos_token"]
+        + title
+        + SPECIAL_TOKENS["sep_token"]
+        + kw
+        + SPECIAL_TOKENS["sep_token"]
+    )
 
     generated = tokenizer.encode(prompt, return_tensors="pt")
 
@@ -48,7 +54,7 @@ def generate(model: AutoModel, tokenizer: AutoTokenizer, item: EnFMGItem):
     sentence = []
     for i, sample_output in enumerate(sample_outputs):
         text = tokenizer.decode(sample_output, skip_special_tokens=True)
-        a = len(title) + len(','.join(item.keywords)) 
+        a = len(title) + len(",".join(item.keywords))
         sentence.append(title + text[a:])
         # print('{} {}\n\n'.format(title,sentence[i]))
 

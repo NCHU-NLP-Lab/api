@@ -5,7 +5,7 @@ from loguru import logger
 from transformers import AutoModel, AutoTokenizer
 
 from config import max_length
-from data_model import GenerationOrder
+from data.model import GenerationOrder
 
 from .optimizer import GAOptimizer
 

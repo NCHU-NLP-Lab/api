@@ -2,7 +2,7 @@ from loguru import logger
 from transformers import AutoModel
 
 from config import max_length
-from data_model import DistractorOrder
+from data.model import DistractorOrder
 from question_group_generation.scorer import CoverageScorer
 
 

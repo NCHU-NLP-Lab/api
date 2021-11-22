@@ -3,7 +3,7 @@ from typing import Tuple
 from transformers import AutoModel, AutoTokenizer
 
 from config import max_question_length
-from data_model import EnQGItem, QuestionAndAnswer
+from data.model import QGItem, QuestionAndAnswer
 
 from .. import prepare_qg_model_input_ids
 
@@ -13,7 +13,7 @@ def setup() -> Tuple[AutoModel, AutoTokenizer]:
 
 
 def generate(
-    model: AutoModel, tokenizer: AutoTokenizer, item: EnQGItem
+    model: AutoModel, tokenizer: AutoTokenizer, item: QGItem
 ) -> QuestionAndAnswer:
     article = item.article
     start_at = item.answer.start_at

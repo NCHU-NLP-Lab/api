@@ -7,7 +7,7 @@ from typing import List
 
 from docx import Document
 
-from data_model import ExportSet
+from data.model import ExportSet
 
 
 def _export_json(question_sets: List[ExportSet]):

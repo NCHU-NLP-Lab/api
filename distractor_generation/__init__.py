@@ -112,7 +112,7 @@ class BartDistractorGeneration:
     @lru_cache(maxsize=1000)
     def generate_distractor(self, context, question, answer, gen_quantity, strategy):
         if type(answer) is str:
-            from data_model import Answer
+            from data.model import Answer
 
             answer = Answer.parse_obj(json.loads(answer))
 
