@@ -170,7 +170,7 @@ class BartDistractorGeneration:
                     ]
                 )
                 metrics_dict = self.nlgeval.compute_individual_metrics([a], b)
-                if metrics_dict["Bleu_1"] > 0.20:
+                if metrics_dict["Bleu_1"] > 0.60:
                     keep = False
                     break
             if keep:
