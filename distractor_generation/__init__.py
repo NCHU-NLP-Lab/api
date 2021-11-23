@@ -169,8 +169,8 @@ class BartDistractorGeneration:
                         for char in i[1]
                     ]
                 )
-                metrics_dict = self.nlgeval.compute_individual_metrics([a], b)
-                if metrics_dict["Bleu_1"] > 0.60:
+                metrics_dict = self.nlgeval.compute_individual_metrics([a], b, no_overlap=Ture, no_skipthoughts=Ture, no_glove=Ture)
+                if metrics_dict["Bleu_1"] > 0.40:
                     keep = False
                     break
             if keep:
