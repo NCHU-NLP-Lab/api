@@ -154,6 +154,8 @@ class BartDistractorGeneration:
 
     def _selection_with_rl(self, context, question, answer, all_options, gen_quantity):
         max_combin = [0, []]
+        max_num_selection_model = 5
+        num_selection_model = 0
         for combin in set(it.combinations(all_options, gen_quantity)):
             options = list(combin) + [answer]
             keep = True
@@ -192,8 +194,14 @@ class BartDistractorGeneration:
                     .entropy()
                     .tolist()[0]
                 )
+                
                 if entropy >= max_combin[0]:
                     max_combin = [entropy, options]
+                    
+                num_selection_model += 1
+                if num_selection_model >= max_num_selection_model:
+                    return max_combin[1][:-1]
+                
         return max_combin[1][:-1]
 
     @lru_cache(maxsize=1000)
