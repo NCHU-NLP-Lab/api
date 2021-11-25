@@ -158,8 +158,12 @@ class BartDistractorGeneration:
             options = list(combin) + [answer]
             keep = True
             for i in set(it.combinations(options, 2)):
-                a = " ".join([char for char in split_lines_by_punc([i[0]])])
-                b = " ".join([char for char in split_lines_by_punc([i[1]])])
+                a = "".join(
+                    [char if char.isalpha() or char == " " else " " + char + " " for char in i[0]]
+                )
+                b = "".join(
+                    [char if char.isalpha() or char == " " else " " + char + " " for char in i[1]]
+                )
                 metrics_dict = self.nlgeval.compute_individual_metrics([a], b, no_overlap=Ture, no_skipthoughts=Ture, no_glove=Ture)
                 if metrics_dict["Bleu_1"] > 0.40:
                     keep = False
