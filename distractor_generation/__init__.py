@@ -160,7 +160,7 @@ class BartDistractorGeneration:
             for i in set(it.combinations(options, 2)):
                 a = " ".join([char for char in split_lines_by_punc([i[0]])])
                 b = " ".join([char for char in split_lines_by_punc([i[1]])])
-                metrics_dict = self.nlgeval.compute_individual_metrics([a], b, no_overlap=True, no_skipthoughts=True, no_glove=True)
+                metrics_dict = self.nlgeval.compute_individual_metrics([a], b)
                 if metrics_dict["Bleu_1"] > 0.40:
                     keep = False
                     break
