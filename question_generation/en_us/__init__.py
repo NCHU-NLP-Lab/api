@@ -32,7 +32,6 @@ def generate(
         top_k=10,
         num_beams=10,
         num_beam_groups=5,
-        diversity_penalty=0.5,
         no_repeat_ngram_size=2,
         num_return_sequences=5,
     )
