@@ -7,6 +7,7 @@ import torch
 from loguru import logger
 from nlgeval import NLGEval
 from torch.distributions import Categorical
+from nlp2 import *
 
 from config import max_length
 from question_group_generation.optimizer import GAOptimizer
