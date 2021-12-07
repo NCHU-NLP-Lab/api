@@ -1,0 +1,17 @@
+# docker-compose up --detach --build
+version: "3.8"
+
+services:
+  api:
+    build: "."
+    env_file: .env
+    container_name: "nchu-lab-api"
+    image: "nchunlplab/nlp-api"
+    restart: always
+    ports:
+      - "12099:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
