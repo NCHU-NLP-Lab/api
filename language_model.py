@@ -122,6 +122,8 @@ class LanguageModels:
             ],
             dg_selection_models=self._dg_rl_model,
             dg_selection_tokenizer=self._dg_rl_tokenizer,
+            pplscorer_model=self.pplscorer_model,
+            pplscorer_tokenizer=self.pplscorer_tokenizer,
         )
 
 

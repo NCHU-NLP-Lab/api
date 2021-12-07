@@ -84,7 +84,13 @@ def prepare_dis_model_input_ids(
 
 class BartDistractorGeneration:
     def __init__(
-        self, dg_models, dg_tokenizer, dg_selection_models, dg_selection_tokenizer
+        self,
+        dg_models,
+        dg_tokenizer,
+        dg_selection_models,
+        dg_selection_tokenizer,
+        pplscorer_model,
+        pplscorer_tokenizer,
     ):
         self.nlgeval = NLGEval(
             metrics_to_omit=[
@@ -103,6 +109,8 @@ class BartDistractorGeneration:
         self.model = dg_selection_models
         self.model.eval()
         self.tokenizer = dg_selection_tokenizer
+        self.pplscorer_model = pplscorer_model
+        self.pplscorer_tokenizer = pplscorer_tokenizer
 
     @lru_cache(maxsize=1000)
     def generate_distractor(self, context, question, answer, gen_quantity, strategy):
@@ -229,5 +237,10 @@ class BartDistractorGeneration:
         )
 
     def _selection_with_ga(self, context, question, answer, all_options, gen_quantity):
-        ga_optim = GAOptimizer(len(all_options), gen_quantity)
+        ga_optim = GAOptimizer(
+            self.pplscorer_model,
+            self.pplscorer_tokenizer,
+            len(all_options),
+            gen_quantity,
+        )
         return ga_optim.optimize(all_options, context)[:gen_quantity]
