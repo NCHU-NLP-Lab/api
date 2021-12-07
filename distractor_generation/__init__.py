@@ -4,13 +4,12 @@ import os
 from functools import lru_cache
 
 import torch
+from config import max_length
 from loguru import logger
 from nlgeval import NLGEval
-from torch.distributions import Categorical
-from nlp2 import *
-
-from config import max_length
+from nlp2 import split_lines_by_punc
 from question_group_generation.optimizer import GAOptimizer
+from torch.distributions import Categorical
 
 
 def prepare_dis_model_ga_input_ids(article, question, answer, tokenizer):
@@ -194,14 +193,14 @@ class BartDistractorGeneration:
                     .entropy()
                     .tolist()[0]
                 )
-                
+
                 if entropy >= max_combin[0]:
                     max_combin = [entropy, options]
-                    
+
                 num_selection_model += 1
                 if num_selection_model >= max_num_selection_model:
                     return max_combin[1][:-1]
-                
+
         return max_combin[1][:-1]
 
     @lru_cache(maxsize=1000)

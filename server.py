@@ -66,6 +66,11 @@ async def export_qa_pairs(
     )
 
 
+#
+# QUESTION GENERATE
+#
+
+
 @app.post("/en-US/generate-question")
 async def generate_en_question(
     item: QGItem = Body(None, examples=examples.get("generate-question/en-US")),
@@ -73,6 +78,20 @@ async def generate_en_question(
     return generate_qg_en_us(
         model=models.en_qg_model, tokenizer=models.en_qg_tokenizer, item=item
     )
+
+
+@app.post("/zh-TW/generate-question")
+async def generate_zh_question(
+    item: QGItem = Body(None, examples=examples.get("generate-question/zh-TW")),
+):
+    return generate_qg_zh_tw(
+        model=models.zh_qg_model, tokenizer=models.zh_qg_tokenizer, item=item
+    )
+
+
+#
+# DISTRACTOR GENERATE
+#
 
 
 @app.post("/en-US/generate-distractor")
@@ -93,28 +112,15 @@ async def generate_en_distractor(
         return Distractors()
 
 
-@app.post("/en-US/generate-group-distractor")
-async def generate_en_group_distractors(
-    order: DistractorOrder = Body(
-        None, examples=examples.get("generate-group-distractor/en-US")
-    ),
-):
-    return generate_dgg_en_us(model=models.en_dis_model, order=order)
-
-
-@app.post("/zh-TW/generate-question")
-async def generate_zh_question(
-    item: QGItem = Body(None, examples=examples.get("generate-question/zh-TW")),
-):
-    return generate_qg_zh_tw(
-        model=models.zh_qg_model, tokenizer=models.zh_qg_tokenizer, item=item
-    )
-
-
 @app.post("/zh-TW/generate-distractor")
 async def generate_zh_distractor(item: DisItem):
     # TODO: Implement this
     pass
+
+
+#
+# QUESTION/DISTRACTOR GROUP GENERATE
+#
 
 
 @app.post("/en-US/generate-question-group")
@@ -126,6 +132,20 @@ async def generate(
     return generate_qgg_en_us(
         model=models.en_qgg_model, tokenizer=models.en_qgg_tokenizer, order=order
     )
+
+
+@app.post("/en-US/generate-group-distractor")
+async def generate_en_group_distractors(
+    order: DistractorOrder = Body(
+        None, examples=examples.get("generate-group-distractor/en-US")
+    ),
+):
+    return generate_dgg_en_us(model=models.en_dis_model, order=order)
+
+
+#
+# PHISHING EMAIL GENERATE
+#
 
 
 @app.post("/en-US/generate-phishing-email")
