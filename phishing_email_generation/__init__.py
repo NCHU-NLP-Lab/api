@@ -1,8 +1,7 @@
 import random
 
-from transformers import AutoModel, AutoTokenizer
-
 from data.model import FMGItem
+from transformers import AutoModel, AutoTokenizer
 
 SPECIAL_TOKENS = {
     "bos_token": "<|BOS|>",
@@ -40,7 +39,7 @@ def generate(model: AutoModel, tokenizer: AutoTokenizer, item: FMGItem):
     generated = tokenizer.encode(prompt, return_tensors="pt")
 
     sample_outputs = model.generate(
-        generated,
+        generated.to(model.device),
         do_sample=True,
         min_length=50,
         max_length=768,

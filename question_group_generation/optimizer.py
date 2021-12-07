@@ -2,12 +2,19 @@ import random
 import re
 
 from geneticalgorithm import geneticalgorithm as ga
+from transformers import AutoModel, AutoTokenizer
 
 from .scorer import CoverageScorer, PPLScorer, SimilarityScorer
 
 
 class GAOptimizer:
-    def __init__(self, candicate_pool_size, target_question_qroup_size):
+    def __init__(
+        self,
+        pplscorer_model: AutoModel,
+        pplscorer_tokenizer: AutoTokenizer,
+        candicate_pool_size,
+        target_question_qroup_size,
+    ):
         """
         Args:
             candicate_pool_size: how many question in the candicate pool, refs to encoding size
@@ -24,11 +31,7 @@ class GAOptimizer:
         self.similarity_scorer = SimilarityScorer(
             metrics_to_omit=["CIDEr", "METEOR", "Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4"]
         )
-
-        if "_ppl_scorer" not in globals():
-            global _ppl_scorer
-            _ppl_scorer = PPLScorer(use_sppl=True)
-        self.ppl_scorer = _ppl_scorer
+        self.ppl_scorer = PPLScorer(pplscorer_model, pplscorer_tokenizer, use_sppl=True)
 
         self.candicate_pool_size = candicate_pool_size
         self.model = ga(

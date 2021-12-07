@@ -76,7 +76,7 @@ async def generate_en_question(
     item: QGItem = Body(None, examples=examples.get("generate-question/en-US")),
 ):
     return generate_qg_en_us(
-        model=models.en_qg_model, tokenizer=models.en_qg_tokenizer, item=item
+        model=models.qg_en_model, tokenizer=models.qg_en_tokenizer, item=item
     )
 
 
@@ -85,7 +85,7 @@ async def generate_zh_question(
     item: QGItem = Body(None, examples=examples.get("generate-question/zh-TW")),
 ):
     return generate_qg_zh_tw(
-        model=models.zh_qg_model, tokenizer=models.zh_qg_tokenizer, item=item
+        model=models.qg_zh_model, tokenizer=models.qg_zh_tokenizer, item=item
     )
 
 
@@ -100,7 +100,7 @@ async def generate_en_distractor(
     strategy: DistractorSelectionStrategry = DistractorSelectionStrategry.RL,
 ):
     if strategy is DistractorSelectionStrategry.RL:
-        decodes = models.en_dis_model.generate_distractor(
+        decodes = models.dis_en_model.generate_distractor(
             item.article,
             item.question,
             json.dumps(item.answer.dict()),
@@ -130,7 +130,11 @@ async def generate(
     ),
 ):
     return generate_qgg_en_us(
-        model=models.en_qgg_model, tokenizer=models.en_qgg_tokenizer, order=order
+        model=models.qgg_en_model,
+        tokenizer=models.qgg_en_tokenizer,
+        pplscorer_model=models.pplscorer_model,
+        pplscorer_tokenizer=models.pplscorer_tokenizer,
+        order=order,
     )
 
 
@@ -140,7 +144,7 @@ async def generate_en_group_distractors(
         None, examples=examples.get("generate-group-distractor/en-US")
     ),
 ):
-    return generate_dgg_en_us(model=models.en_dis_model, order=order)
+    return generate_dgg_en_us(model=models.dis_en_model, order=order)
 
 
 #
@@ -151,5 +155,5 @@ async def generate_en_group_distractors(
 @app.post("/en-US/generate-phishing-email")
 async def generate_en_phishing_email(item: FMGItem):
     return generate_fm_en_us(
-        model=models.en_fm_model, tokenizer=models.en_fm_tokenizer, item=item
+        model=models.fm_en_model, tokenizer=models.fm_en_tokenizer, item=item
     )

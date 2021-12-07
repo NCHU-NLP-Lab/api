@@ -4,8 +4,7 @@ version: "3.8"
 services:
   api:
     build: "."
-    env_file: .env
-    container_name: "nchu-lab-api"
+    container_name: "nlp-api"
     image: "nchunlplab/nlp-api"
     restart: always
     ports:

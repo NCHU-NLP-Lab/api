@@ -1,18 +1,17 @@
 import re
 
 import torch
-from loguru import logger
-from transformers import AutoModel, AutoTokenizer
-
 from config import max_length
 from data.model import GenerationOrder
+from loguru import logger
+from transformers import AutoModel, AutoTokenizer
 
 from .optimizer import GAOptimizer
 
 
 def feedback_generation(model, tokenizer, input_ids, feedback_times=3):
     outputs = []
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    device = model.device
     for i in range(feedback_times):
         gened_text = tokenizer.bos_token * (len(outputs) + 1)
         gened_ids = tokenizer(gened_text, add_special_tokens=False)["input_ids"]
@@ -48,7 +47,13 @@ def feedback_generation(model, tokenizer, input_ids, feedback_times=3):
     return outputs
 
 
-def generate(model: AutoModel, tokenizer: AutoTokenizer, order: GenerationOrder):
+def generate(
+    model: AutoModel,
+    tokenizer: AutoTokenizer,
+    pplscorer_model: AutoModel,
+    pplscorer_tokenizer: AutoTokenizer,
+    order: GenerationOrder,
+):
     context = order.context
     question_group_size = order.question_group_size
     candidate_pool_size = order.candidate_pool_size
@@ -91,6 +96,11 @@ def generate(model: AutoModel, tokenizer: AutoTokenizer, order: GenerationOrder)
     logger.info(f"Size of candidate_questions:{len(candidate_questions)}")
 
     while len(candidate_questions) > question_group_size:
-        qgg_optim = GAOptimizer(len(candidate_questions), question_group_size)
+        qgg_optim = GAOptimizer(
+            pplscorer_model,
+            pplscorer_tokenizer,
+            len(candidate_questions),
+            question_group_size,
+        )
         candidate_questions = qgg_optim.optimize(candidate_questions, context)
     return {"question_group": candidate_questions}

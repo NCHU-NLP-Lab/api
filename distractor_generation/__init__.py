@@ -98,15 +98,10 @@ class BartDistractorGeneration:
         )
 
         self.dg_models = dg_models
-
         self.dg_tokenizers = dg_tokenizer
-
-        for dg_model in self.dg_models:
-            dg_model.to(os.environ.get("BDG_DEVICE", "cpu"))
 
         self.model = dg_selection_models
         self.model.eval()
-        self.model.to(os.environ.get("BDG_CLF_DEVICE", "cpu"))
         self.tokenizer = dg_selection_tokenizer
 
     @lru_cache(maxsize=1000)

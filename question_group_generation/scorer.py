@@ -175,17 +175,11 @@ class CoverageScorer(Scorer):
 
 
 class PPLScorer(Scorer):
-    def __init__(
-        self, model_id="gpt2", device="cpu", stride=512, max_length=512, use_sppl=False
-    ):
-        if "_ppl_model" not in globals():
-            global _ppl_model
-            _ppl_model = AutoModelForCausalLM.from_pretrained(model_id).to(device)
-        self.model = _ppl_model
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+    def __init__(self, model, tokenizer, stride=512, max_length=512, use_sppl=False):
+        self.model = model
+        self.tokenizer = tokenizer
         self.stride = stride
         self.max_length = max_length
-        self.device = device
         self.use_sppl = use_sppl
 
         #
@@ -221,7 +215,7 @@ class PPLScorer(Scorer):
             begin_loc = max(i + stride - max_length, 0)
             end_loc = min(i + stride, encodings.input_ids.size(1))
             trg_len = end_loc - i  # may be different from stride on last loop
-            input_ids = encodings.input_ids[:, begin_loc:end_loc].to(self.device)
+            input_ids = encodings.input_ids[:, begin_loc:end_loc].to(self.model.device)
             target_ids = input_ids.clone()
             target_ids[:, :-trg_len] = -100
 

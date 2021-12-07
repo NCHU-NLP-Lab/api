@@ -23,8 +23,8 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # Pre download language models
-COPY download.py .
-RUN python3 download.py
+COPY language_model.py .
+RUN python3 language_model.py
 
 # Copy whole app
 COPY . .

@@ -1,9 +1,8 @@
 from typing import Tuple
 
-from transformers import AutoModel, AutoTokenizer
-
 from config import max_length, max_question_length
-from data.model import QuestionAndAnswer, QGItem
+from data.model import QGItem, QuestionAndAnswer
+from transformers import AutoModel, AutoTokenizer
 
 from .. import prepare_qg_model_input_ids
 
@@ -23,7 +22,7 @@ def generate(
         article, start_at, end_at, tokenizer
     )
     outputs = model.generate(
-        input_ids=input_ids,
+        input_ids=input_ids.to(model.device),
         max_length=max_length + max_question_length,
         early_stopping=True,
         do_sample=False,
