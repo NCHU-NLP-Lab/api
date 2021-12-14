@@ -3,6 +3,7 @@ import time
 from collections import namedtuple
 
 import stanza
+import torch
 from loguru import logger
 from transformers import (
     AutoModelForCausalLM,
@@ -104,7 +105,11 @@ class LanguageModels:
         if not download_only:
             from config import CUDA_MODELS
 
-            model.to("cpu" if spec.name not in CUDA_MODELS else "cuda")
+            model.to(
+                "cuda"
+                if spec.name in CUDA_MODELS and torch.cuda.is_available()
+                else "cpu"
+            )
         tokenizer = spec.tokenizer_class.from_pretrained(spec.name)
         setattr(self, f"{spec.alias}_model", model)
         setattr(self, f"{spec.alias}_tokenizer", tokenizer)
