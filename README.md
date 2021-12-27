@@ -62,3 +62,7 @@ poetry export -f requirements.txt --output requirements.txt --without-hashes
 
 [^1]: [A Recurrent BERT-based Model for Question Generation](https://aclanthology.org/D19-5821/)
 [^2]: [A BERT-based Distractor Generation Scheme with Multi-tasking and Negative Answer Training Strategies.](https://aclanthology.org/2020.findings-emnlp.393/)
+
+## Author
+
+* Tomy Hsieh ([@tomy0000000](https://github.com/tomy0000000))
