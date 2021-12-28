@@ -17,7 +17,7 @@ from transformers import (
     RobertaTokenizer,
 )
 
-ModelSpec = namedtuple("Model", ["model_class", "tokenizer_class", "name", "alias"])
+ModelSpec = namedtuple("ModelSpec", ["model_class", "tokenizer_class", "name", "alias"])
 
 MODELS_SPECS = [
     ModelSpec(
