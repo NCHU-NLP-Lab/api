@@ -26,35 +26,44 @@ def _join_keywords(keywords, randomize=False):
 
 def generate(model: AutoModel, tokenizer: AutoTokenizer, item: FMGItem):
     kw = _join_keywords(item.keywords)
-    title = ""
+    title = item.title  # 起始句
+    types = "Normal"
+    category = item.category
+    if category not in ['CRIME' ,'ENTERTAINMENT', 'POLITICS', 'SPORTS', 'BUSINESS', 'TECH', 'EDUCATION', 'HEALTHY LIVING', 'MONEY', 'CULTURE & ARTS']:
+        category = 'TECH'
+    formats = "Email"  # 文體
 
     prompt = (
-        SPECIAL_TOKENS["bos_token"]
-        + title
-        + SPECIAL_TOKENS["sep_token"]
-        + kw
-        + SPECIAL_TOKENS["sep_token"]
+                SPECIAL_TOKENS['bos_token'] + types + \
+                SPECIAL_TOKENS['sep_token'] + category + \
+                SPECIAL_TOKENS['sep_token'] + formats + \
+                SPECIAL_TOKENS['sep_token'] + title + \
+                SPECIAL_TOKENS['sep_token'] + kw
     )
 
+    pre_len = len(types)+len(category)+len(formats)+len(title)+len(kw)
     generated = tokenizer.encode(prompt, return_tensors="pt")
 
     sample_outputs = model.generate(
         generated.to(model.device),
         do_sample=True,
-        min_length=50,
-        max_length=768,
-        top_k=30,
-        top_p=0.7,
-        temperature=0.9,
+        min_length=20,
+        max_length=200,
+        top_k=10,
+        top_p=0.5,
         repetition_penalty=2.0,
-        num_return_sequences=1,
+        num_return_sequences=1, ## 只生一句
     )
 
-    sentence = []
+    predt_email = []
     for i, sample_output in enumerate(sample_outputs):
-        text = tokenizer.decode(sample_output, skip_special_tokens=True)
-        a = len(title) + len(",".join(item.keywords))
-        sentence.append(title + text[a:])
-        # print('{} {}\n\n'.format(title,sentence[i]))
+        predit_text = tokenizer.decode(sample_output, skip_special_tokens=True)[pre_len:]
+        result = " ".join(predit_text.split())
+        pretty_text = ""
+        for j,t in enumerate(result.split(' ')):
+            pretty_text += t+' '
+            if j%20==0 and j!=0:
+                pretty_text += '\n'
+        predt_email.append(pretty_text)
 
-    return sentence
+    return predt_email

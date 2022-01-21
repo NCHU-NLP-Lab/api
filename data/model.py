@@ -85,3 +85,6 @@ class ExportSet(BaseModel):
 
 class FMGItem(BaseModel):
     keywords: List[str]
+    category: str
+    title: str
+    
