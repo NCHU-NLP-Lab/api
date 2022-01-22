@@ -58,12 +58,6 @@ def generate(model: AutoModel, tokenizer: AutoTokenizer, item: FMGItem):
     predt_email = []
     for i, sample_output in enumerate(sample_outputs):
         predit_text = tokenizer.decode(sample_output, skip_special_tokens=True)[pre_len:]
-        result = " ".join(predit_text.split())
-        pretty_text = ""
-        for j,t in enumerate(result.split(' ')):
-            pretty_text += t+' '
-            if j%20==0 and j!=0:
-                pretty_text += '\n'
-        predt_email.append(pretty_text)
+        predt_email.append(predit_text)
 
     return predt_email
