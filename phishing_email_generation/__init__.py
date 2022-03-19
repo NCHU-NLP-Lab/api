@@ -1,5 +1,5 @@
 import random
-
+import re
 from data.model import FMGItem
 from transformers import AutoModel, AutoTokenizer
 
@@ -23,6 +23,9 @@ def _join_keywords(keywords, randomize=False):
 
     return ",".join(keywords)
 
+def remove_Symbol(s):
+    s = re.sub(r'[^\w]','',s)
+    return s
 
 def generate(model: AutoModel, tokenizer: AutoTokenizer, item: FMGItem):
     kw = _join_keywords(item.keywords)
@@ -58,6 +61,9 @@ def generate(model: AutoModel, tokenizer: AutoTokenizer, item: FMGItem):
     predt_email = []
     for i, sample_output in enumerate(sample_outputs):
         predit_text = tokenizer.decode(sample_output, skip_special_tokens=True)[pre_len:]
-        predt_email.append(predit_text)
+        index = predit_text.find('.')
+        result = " ".join(remove_Symbol(t) for t in predit_text[index+1:].lower().split())
+        result = result[0].upper() + result[1:]
+        predt_email.append(result)
 
     return predt_email
