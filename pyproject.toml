@@ -2,7 +2,7 @@
 name = "nchu-nlp-api"
 version = "0.1.0"
 description = ""
-authors = ["Tomy Hsieh <tomy0000000@gmail.com>", "Philip Huang <p208p2002@gmail.com>"]
+authors = ["Tomy Hsieh <pypi@tomy.me>", "Philip Huang <p208p2002@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
